@@ -6,32 +6,36 @@ class Piece:
         self.name = name      # Obj name
         self.curr_col_idx = 1   # Init Col Index
         self.curr_row_idx = 0   # Init Row Index
+        self.delta_col_idx = 0
+        self.delta_row_idx = 0
 
     def display_info(self):
         """Method that utilizes the object's data."""
         return f"Name: {self.name}"
 
     def gen_next_pos(self):
-        delta_col_idx = 0
+        print(f"Delta RC  {self.delta_row_idx}  {self.delta_col_idx}")
+        self.curr_col_idx = self.curr_col_idx + self.delta_col_idx
+        self.curr_row_idx = self.curr_row_idx + self.delta_row_idx
+
+class Knight(Piece):
+    def gen_next_pos(self):
         while True:
-            delta_col_idx = random.choice([-2,-1,1,2])
-            if delta_col_idx in [-2,2]:
-                delta_row_idx = random.choice([-1,1])
-            else: # delta_col_idx in [-1,1]
-                delta_row_idx = random.choice([-2,2])
-            if self.curr_col_idx + delta_col_idx >= 0 and self.curr_row_idx + delta_row_idx >= 0:
+            self.delta_col_idx = random.choice([-2,-1,1,2])
+            if self.delta_col_idx in [-2,2]:
+                self.delta_row_idx = random.choice([-1,1])
+            else: # self.delta_col_idx in [-1,1]
+                self.delta_row_idx = random.choice([-2,2])
+            if self.curr_col_idx + self.delta_col_idx >= 0 and self.curr_row_idx + self.delta_row_idx >= 0:
                 break
-        print(f"Delta RC  {delta_row_idx}  {delta_col_idx}")
-        self.curr_col_idx = self.curr_col_idx + delta_col_idx
-        self.curr_row_idx = self.curr_row_idx + delta_row_idx
+        super().gen_next_pos()
 
 # Configuration for 64 objects (e.g., an 8x8 2D array)
 rows, cols = 8, 8
 grid_2d = [[0 for _ in range(cols)] for _ in range(rows)]
 
 # 1. Populate the 2D array with 32 Piece instances
-obj_name = f"_Knight_"
-knight_obj = Piece(obj_name)
+knight_obj = Knight(f"_Knight_")
 grid_2d[knight_obj.curr_row_idx][knight_obj.curr_col_idx] = knight_obj
 
 # 2. Access and test the method on one of the 32 objects

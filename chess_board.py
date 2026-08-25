@@ -4,21 +4,23 @@ import random
 
 class Piece:
     """A class containing both data and a method."""
-    def __init__(self, name):
+    def __init__(self, name, curr_col_idx, curr_row_idx):
         self.name = name      # Obj name
-        self.curr_col_idx = 1   # Init Col Index
-        self.curr_row_idx = 0   # Init Row Index
+        self.curr_col_idx = curr_col_idx  # Init Col Index
+        self.curr_row_idx = curr_row_idx  # Init Row Index
         self.delta_col_idx = 0
         self.delta_row_idx = 0
+        self.next_col_idx = 0 # Final Col Index
+        self.next_row_idx = 0 # Final Row Index
 
     def display_info(self):
         """Method that utilizes the object's data."""
         return f"Name: {self.name}"
 
     def gen_next_pos(self):
-        print(f"Delta RC  {self.delta_row_idx}  {self.delta_col_idx}")
-        self.curr_col_idx = self.curr_col_idx + self.delta_col_idx
-        self.curr_row_idx = self.curr_row_idx + self.delta_row_idx
+        print(f"Delta RC {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
+        self.next_col_idx = self.curr_col_idx + self.delta_col_idx
+        self.next_row_idx = self.curr_row_idx + self.delta_row_idx
 
 class Knight(Piece):
     def gen_next_pos(self):
@@ -28,10 +30,22 @@ class Knight(Piece):
                 self.delta_row_idx = random.choice([-1,1])
             else: # self.delta_col_idx in [-1,1]
                 self.delta_row_idx = random.choice([-2,2])
-            if self.curr_col_idx + self.delta_col_idx >= 0 and self.curr_row_idx + self.delta_row_idx >= 0:
+            if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
                 break
         super().gen_next_pos()
-
+'''
+class Bishop(Piece):
+    def gen_next_pos(self):
+        while True:
+            self.delta_col_idx = random.choice([-2,-1,1,2])
+            if self.delta_col_idx in [-2,2]:
+                self.delta_row_idx = random.choice([-1,1])
+            else: # self.delta_col_idx in [-1,1]
+                self.delta_row_idx = random.choice([-2,2])
+            if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
+                break
+        super().gen_next_pos()
+'''
 # 1. Initialize Pygame
 pygame.init()
 
@@ -55,6 +69,7 @@ PIECE_SYMBOLS = {
 
 # 5. Your 2D Python Input Array (8x8)
 # Lowercase = Black, Uppercase = White, '.' = Empty
+### chess_array[row_idx][col_idx] ###
 chess_array = [
     ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],  #row 0 black pieces
     ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
@@ -100,9 +115,12 @@ clock = pygame.time.Clock()
 
 # 7. Main Game Loop
 
-knight_obj = Knight('n')
-chess_array[knight_obj.curr_row_idx][knight_obj.curr_col_idx] = knight_obj.name
+blk_kn_obj = Knight('n', 1, 0)
+chess_array[blk_kn_obj.curr_row_idx][blk_kn_obj.curr_col_idx] = blk_kn_obj.name
+wht_kn_obj = Knight('N', 1, 7)
+chess_array[wht_kn_obj.curr_row_idx][wht_kn_obj.curr_col_idx] = wht_kn_obj.name
 
+blk_turn = True
 running = True
 while running:
 
@@ -116,10 +134,25 @@ while running:
             
     # Redraw the UI
     draw_board(chess_array)
-    pygame.display.flip()
+    pygame.display.flip() #Board is (re)drawn here
 
-    chess_array[knight_obj.curr_row_idx][knight_obj.curr_col_idx] = '.'
-    knight_obj.gen_next_pos()
-    chess_array[knight_obj.curr_row_idx][knight_obj.curr_col_idx] = knight_obj.name
+    if blk_turn:
+        chess_array[blk_kn_obj.curr_row_idx][blk_kn_obj.curr_col_idx] = '.'
+        while True:
+            blk_kn_obj.gen_next_pos()
+            if chess_array[blk_kn_obj.next_row_idx][blk_kn_obj.next_col_idx] != ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r', 'p']:
+                chess_array[blk_kn_obj.next_row_idx][blk_kn_obj.next_col_idx] = blk_kn_obj.name
+                break
+        blk_kn_obj.curr_col_idx = blk_kn_obj.next_col_idx
+        blk_kn_obj.curr_row_idx = blk_kn_obj.next_row_idx
+    else:
+        chess_array[wht_kn_obj.curr_row_idx][wht_kn_obj.curr_col_idx] = '.'
+        while True:
+            wht_kn_obj.gen_next_pos()
+            if chess_array[wht_kn_obj.next_row_idx][wht_kn_obj.next_col_idx] != ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r', 'p']:
+                chess_array[wht_kn_obj.next_row_idx][wht_kn_obj.next_col_idx] = wht_kn_obj.name
+                break
+        wht_kn_obj.curr_col_idx = wht_kn_obj.next_col_idx
+        wht_kn_obj.curr_row_idx = wht_kn_obj.next_row_idx
 
-
+    blk_turn = not blk_turn

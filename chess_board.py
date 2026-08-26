@@ -62,8 +62,8 @@ TEXT_COLOR = (0, 0, 0)          # Black for pieces
 
 # 4. Map Characters/Pieces to Unicode Chess Symbols
 PIECE_SYMBOLS = {
-    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
-    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
+    'r': '♜', 'nl': '♞', 'nr': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
+    'R': '♖', 'Nl': '♘', 'Nr': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
     '.': ''                                                      # Empty Square
 }
 
@@ -71,14 +71,14 @@ PIECE_SYMBOLS = {
 # Lowercase = Black, Uppercase = White, '.' = Empty
 ### chess_array[row_idx][col_idx] ###
 chess_array = [
-    ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],  #row 0 black pieces
+    ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r'],  #row 0 black pieces
     ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', 'P', '.', '.', '.'],  # E4 Pawn Open example
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['P', 'P', 'P', 'P', '.', 'P', 'P', 'P'],
-    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']   #row 7 white pieces
+    ['R', 'Nl', 'B', 'Q', 'K', 'B', 'Nr', 'R']   #row 7 white pieces
 ]
    #col0                                col7
 
@@ -115,12 +115,13 @@ clock = pygame.time.Clock()
 
 # 7. Main Game Loop
 
-blk_kn_obj = Knight('n', 1, 0)
-chess_array[blk_kn_obj.curr_row_idx][blk_kn_obj.curr_col_idx] = blk_kn_obj.name
-wht_kn_obj = Knight('N', 1, 7)
-chess_array[wht_kn_obj.curr_row_idx][wht_kn_obj.curr_col_idx] = wht_kn_obj.name
+blkl_kn_obj = Knight('nl', 1, 0)
+blkr_kn_obj = Knight('nr', 6, 0)
+whtl_kn_obj = Knight('Nl', 1, 7)
+whtr_kn_obj = Knight('Nr', 6, 7)
 
 blk_turn = True
+left_turn = True
 running = True
 while running:
 
@@ -136,23 +137,49 @@ while running:
     draw_board(chess_array)
     pygame.display.flip() #Board is (re)drawn here
 
-    if blk_turn:
-        chess_array[blk_kn_obj.curr_row_idx][blk_kn_obj.curr_col_idx] = '.'
+    if blk_turn and left_turn:
+        chess_array[blkl_kn_obj.curr_row_idx][blkl_kn_obj.curr_col_idx] = '.'
         while True:
-            blk_kn_obj.gen_next_pos()
-            if chess_array[blk_kn_obj.next_row_idx][blk_kn_obj.next_col_idx] != ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r', 'p']:
-                chess_array[blk_kn_obj.next_row_idx][blk_kn_obj.next_col_idx] = blk_kn_obj.name
+            blkl_kn_obj.gen_next_pos()
+            if chess_array[blkl_kn_obj.next_row_idx][blkl_kn_obj.next_col_idx] != ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r', 'p']:
+                chess_array[blkl_kn_obj.next_row_idx][blkl_kn_obj.next_col_idx] = blkl_kn_obj.name
                 break
-        blk_kn_obj.curr_col_idx = blk_kn_obj.next_col_idx
-        blk_kn_obj.curr_row_idx = blk_kn_obj.next_row_idx
-    else:
-        chess_array[wht_kn_obj.curr_row_idx][wht_kn_obj.curr_col_idx] = '.'
-        while True:
-            wht_kn_obj.gen_next_pos()
-            if chess_array[wht_kn_obj.next_row_idx][wht_kn_obj.next_col_idx] != ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r', 'p']:
-                chess_array[wht_kn_obj.next_row_idx][wht_kn_obj.next_col_idx] = wht_kn_obj.name
-                break
-        wht_kn_obj.curr_col_idx = wht_kn_obj.next_col_idx
-        wht_kn_obj.curr_row_idx = wht_kn_obj.next_row_idx
+        blkl_kn_obj.curr_col_idx = blkl_kn_obj.next_col_idx
+        blkl_kn_obj.curr_row_idx = blkl_kn_obj.next_row_idx
+        blk_turn = not blk_turn
 
-    blk_turn = not blk_turn
+    elif not blk_turn and left_turn:
+        chess_array[whtl_kn_obj.curr_row_idx][whtl_kn_obj.curr_col_idx] = '.'
+        while True:
+            whtl_kn_obj.gen_next_pos()
+            if chess_array[whtl_kn_obj.next_row_idx][whtl_kn_obj.next_col_idx] != ['R', 'Nl', 'B', 'Q', 'K', 'B', 'Nr', 'R', 'P']:
+                chess_array[whtl_kn_obj.next_row_idx][whtl_kn_obj.next_col_idx] = whtl_kn_obj.name
+                break
+        whtl_kn_obj.curr_col_idx = whtl_kn_obj.next_col_idx
+        whtl_kn_obj.curr_row_idx = whtl_kn_obj.next_row_idx
+        blk_turn = not blk_turn
+        left_turn = not left_turn
+
+    elif blk_turn and not left_turn:
+        chess_array[blkr_kn_obj.curr_row_idx][blkr_kn_obj.curr_col_idx] = '.'
+        while True:
+            blkr_kn_obj.gen_next_pos()
+            if chess_array[blkr_kn_obj.next_row_idx][blkr_kn_obj.next_col_idx] != ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r', 'p']:
+                chess_array[blkr_kn_obj.next_row_idx][blkr_kn_obj.next_col_idx] = blkr_kn_obj.name
+                break
+        blkr_kn_obj.curr_col_idx = blkr_kn_obj.next_col_idx
+        blkr_kn_obj.curr_row_idx = blkr_kn_obj.next_row_idx
+        blk_turn = not blk_turn
+
+    else: #not blk_turn and not left_turn:
+        chess_array[whtr_kn_obj.curr_row_idx][whtr_kn_obj.curr_col_idx] = '.'
+        while True:
+            whtr_kn_obj.gen_next_pos()
+            if chess_array[whtr_kn_obj.next_row_idx][whtr_kn_obj.next_col_idx] != ['R', 'Nl', 'B', 'Q', 'K', 'B', 'Nr', 'R', 'P']:
+                chess_array[whtr_kn_obj.next_row_idx][whtr_kn_obj.next_col_idx] = whtr_kn_obj.name
+                break
+        whtr_kn_obj.curr_col_idx = whtr_kn_obj.next_col_idx
+        whtr_kn_obj.curr_row_idx = whtr_kn_obj.next_row_idx
+        blk_turn = not blk_turn
+        left_turn = not left_turn
+

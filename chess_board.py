@@ -111,6 +111,17 @@ def draw_board(board_array):
                 text_rect = text_surface.get_rect(center=rect.center)
                 screen.blit(text_surface, text_rect)
 
+def move_next_pos(board_array, piece_obj):
+        board_array[piece_obj.curr_row_idx][piece_obj.curr_col_idx] = '.'
+        while True:
+            piece_obj.gen_next_pos()
+            if board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] not in ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r', 'p']:
+                board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] = piece_obj.name
+                break
+        piece_obj.curr_col_idx = piece_obj.next_col_idx
+        piece_obj.curr_row_idx = piece_obj.next_row_idx
+
+    
 clock = pygame.time.Clock()
 
 # 7. Main Game Loop
@@ -120,9 +131,9 @@ blkr_kn_obj = Knight('nr', 6, 0)
 whtl_kn_obj = Knight('Nl', 1, 7)
 whtr_kn_obj = Knight('Nr', 6, 7)
 
-blk_turn = True
-left_turn = True
+num_pieces_active = 4
 running = True
+i = 0
 while running:
 
     clock.tick(0.5)
@@ -137,49 +148,17 @@ while running:
     draw_board(chess_array)
     pygame.display.flip() #Board is (re)drawn here
 
-    if blk_turn and left_turn:
-        chess_array[blkl_kn_obj.curr_row_idx][blkl_kn_obj.curr_col_idx] = '.'
-        while True:
-            blkl_kn_obj.gen_next_pos()
-            if chess_array[blkl_kn_obj.next_row_idx][blkl_kn_obj.next_col_idx] != ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r', 'p']:
-                chess_array[blkl_kn_obj.next_row_idx][blkl_kn_obj.next_col_idx] = blkl_kn_obj.name
-                break
-        blkl_kn_obj.curr_col_idx = blkl_kn_obj.next_col_idx
-        blkl_kn_obj.curr_row_idx = blkl_kn_obj.next_row_idx
-        blk_turn = not blk_turn
+    if i % num_pieces_active == 0:
+        move_next_pos(chess_array, blkl_kn_obj)
 
-    elif not blk_turn and left_turn:
-        chess_array[whtl_kn_obj.curr_row_idx][whtl_kn_obj.curr_col_idx] = '.'
-        while True:
-            whtl_kn_obj.gen_next_pos()
-            if chess_array[whtl_kn_obj.next_row_idx][whtl_kn_obj.next_col_idx] != ['R', 'Nl', 'B', 'Q', 'K', 'B', 'Nr', 'R', 'P']:
-                chess_array[whtl_kn_obj.next_row_idx][whtl_kn_obj.next_col_idx] = whtl_kn_obj.name
-                break
-        whtl_kn_obj.curr_col_idx = whtl_kn_obj.next_col_idx
-        whtl_kn_obj.curr_row_idx = whtl_kn_obj.next_row_idx
-        blk_turn = not blk_turn
-        left_turn = not left_turn
+    elif i % num_pieces_active == 1:
+        move_next_pos(chess_array, whtl_kn_obj)
 
-    elif blk_turn and not left_turn:
-        chess_array[blkr_kn_obj.curr_row_idx][blkr_kn_obj.curr_col_idx] = '.'
-        while True:
-            blkr_kn_obj.gen_next_pos()
-            if chess_array[blkr_kn_obj.next_row_idx][blkr_kn_obj.next_col_idx] != ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r', 'p']:
-                chess_array[blkr_kn_obj.next_row_idx][blkr_kn_obj.next_col_idx] = blkr_kn_obj.name
-                break
-        blkr_kn_obj.curr_col_idx = blkr_kn_obj.next_col_idx
-        blkr_kn_obj.curr_row_idx = blkr_kn_obj.next_row_idx
-        blk_turn = not blk_turn
+    elif i % num_pieces_active == 2:
+        move_next_pos(chess_array, blkr_kn_obj)
 
-    else: #not blk_turn and not left_turn:
-        chess_array[whtr_kn_obj.curr_row_idx][whtr_kn_obj.curr_col_idx] = '.'
-        while True:
-            whtr_kn_obj.gen_next_pos()
-            if chess_array[whtr_kn_obj.next_row_idx][whtr_kn_obj.next_col_idx] != ['R', 'Nl', 'B', 'Q', 'K', 'B', 'Nr', 'R', 'P']:
-                chess_array[whtr_kn_obj.next_row_idx][whtr_kn_obj.next_col_idx] = whtr_kn_obj.name
-                break
-        whtr_kn_obj.curr_col_idx = whtr_kn_obj.next_col_idx
-        whtr_kn_obj.curr_row_idx = whtr_kn_obj.next_row_idx
-        blk_turn = not blk_turn
-        left_turn = not left_turn
+    else: #i % num_pieces_active == 3:
+        move_next_pos(chess_array, whtr_kn_obj)
+
+    i += 1
 

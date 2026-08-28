@@ -33,19 +33,16 @@ class Knight(Piece):
             if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
                 break
         super().gen_next_pos()
-'''
+
 class Bishop(Piece):
     def gen_next_pos(self):
         while True:
-            self.delta_col_idx = random.choice([-2,-1,1,2])
-            if self.delta_col_idx in [-2,2]:
-                self.delta_row_idx = random.choice([-1,1])
-            else: # self.delta_col_idx in [-1,1]
-                self.delta_row_idx = random.choice([-2,2])
+            self.delta_col_idx = random.randint(-7, 7)
+            self.delta_row_idx = random.choice([-1 * self.delta_col_idx, self.delta_col_idx])
             if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
                 break
         super().gen_next_pos()
-'''
+
 # 1. Initialize Pygame
 pygame.init()
 
@@ -62,8 +59,8 @@ TEXT_COLOR = (0, 0, 0)          # Black for pieces
 
 # 4. Map Characters/Pieces to Unicode Chess Symbols
 PIECE_SYMBOLS = {
-    'r': '♜', 'nl': '♞', 'nr': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
-    'R': '♖', 'Nl': '♘', 'Nr': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
+    'r': '♜', 'nl': '♞', 'nr': '♞', 'bl': '♝', 'br': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
+    'R': '♖', 'NL': '♘', 'NR': '♘', 'BL': '♗', 'BR': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
     '.': ''                                                      # Empty Square
 }
 
@@ -71,14 +68,14 @@ PIECE_SYMBOLS = {
 # Lowercase = Black, Uppercase = White, '.' = Empty
 ### chess_array[row_idx][col_idx] ###
 chess_array = [
-    ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r'],  #row 0 black pieces
+    ['r', 'nl', 'bl', 'q', 'k', 'br', 'nr', 'r'],  #row 0 black pieces
     ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', 'P', '.', '.', '.'],  # E4 Pawn Open example
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['P', 'P', 'P', 'P', '.', 'P', 'P', 'P'],
-    ['R', 'Nl', 'B', 'Q', 'K', 'B', 'Nr', 'R']   #row 7 white pieces
+    ['R', 'NL', 'BL', 'Q', 'K', 'BR', 'NR', 'R']   #row 7 white pieces
 ]
    #col0                                col7
 
@@ -115,9 +112,14 @@ def move_next_pos(board_array, piece_obj):
         board_array[piece_obj.curr_row_idx][piece_obj.curr_col_idx] = '.'
         while True:
             piece_obj.gen_next_pos()
-            if board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] not in ['r', 'nl', 'b', 'q', 'k', 'b', 'nr', 'r', 'p']:
-                board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] = piece_obj.name
-                break
+            if piece_obj.name.islower(): #Black piece
+                if board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] not in ['r', 'nl', 'nr', 'b', 'q', 'k', 'p']:
+                    board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] = piece_obj.name
+                    break
+            else: #White piece
+                if board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] not in ['R', 'NL', 'NR', 'B', 'Q', 'K', 'P']:
+                    board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] = piece_obj.name
+                    break
         piece_obj.curr_col_idx = piece_obj.next_col_idx
         piece_obj.curr_row_idx = piece_obj.next_row_idx
 
@@ -128,37 +130,30 @@ clock = pygame.time.Clock()
 
 blkl_kn_obj = Knight('nl', 1, 0)
 blkr_kn_obj = Knight('nr', 6, 0)
-whtl_kn_obj = Knight('Nl', 1, 7)
-whtr_kn_obj = Knight('Nr', 6, 7)
+whtl_kn_obj = Knight('NL', 1, 7)
+whtr_kn_obj = Knight('NR', 6, 7)
+blkl_bi_obj = Bishop('bl', 2, 0)
+blkr_bi_obj = Bishop('br', 5, 0)
+whtl_bi_obj = Bishop('BL', 2, 7)
+whtr_bi_obj = Bishop('BR', 5, 7)
 
-num_pieces_active = 4
+total_pieces = [blkl_kn_obj, blkr_kn_obj, whtl_kn_obj, whtr_kn_obj, blkl_bi_obj, blkr_bi_obj, whtl_bi_obj, whtr_bi_obj]
+
 running = True
-i = 0
 while running:
+    for board_obj in total_pieces:
 
-    clock.tick(0.5)
+        clock.tick(0.5)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-            pygame.quit()
-            sys.exit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                sys.exit()
             
-    # Redraw the UI
-    draw_board(chess_array)
-    pygame.display.flip() #Board is (re)drawn here
+        # Redraw the UI
+        draw_board(chess_array)
+        pygame.display.flip() #Board is (re)drawn here
 
-    if i % num_pieces_active == 0:
-        move_next_pos(chess_array, blkl_kn_obj)
-
-    elif i % num_pieces_active == 1:
-        move_next_pos(chess_array, whtl_kn_obj)
-
-    elif i % num_pieces_active == 2:
-        move_next_pos(chess_array, blkr_kn_obj)
-
-    else: #i % num_pieces_active == 3:
-        move_next_pos(chess_array, whtr_kn_obj)
-
-    i += 1
+        move_next_pos(chess_array, board_obj)
 

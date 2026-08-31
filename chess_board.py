@@ -22,6 +22,21 @@ class Piece:
         self.next_col_idx = self.curr_col_idx + self.delta_col_idx
         self.next_row_idx = self.curr_row_idx + self.delta_row_idx
 
+    def move_next_pos(self, board_array):
+        board_array[self.curr_row_idx][self.curr_col_idx] = '.'
+        while True:
+            self.gen_next_pos()
+            if self.name.islower(): #Black piece
+                if board_array[self.next_row_idx][self.next_col_idx] not in ['r', 'nl', 'nr', 'b', 'q', 'k', 'p']:
+                    board_array[self.next_row_idx][self.next_col_idx] = self.name
+                    break
+            else: #White piece
+                if board_array[self.next_row_idx][self.next_col_idx] not in ['R', 'NL', 'NR', 'B', 'Q', 'K', 'P']:
+                    board_array[self.next_row_idx][self.next_col_idx] = self.name
+                    break
+        self.curr_col_idx = self.next_col_idx
+        self.curr_row_idx = self.next_row_idx
+
 class Knight(Piece):
     def gen_next_pos(self):
         while True:
@@ -37,7 +52,7 @@ class Knight(Piece):
 class Bishop(Piece):
     def gen_next_pos(self):
         while True:
-            self.delta_col_idx = random.randint(-7, 7)
+            self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
             self.delta_row_idx = random.choice([-1 * self.delta_col_idx, self.delta_col_idx])
             if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
                 break
@@ -68,14 +83,18 @@ PIECE_SYMBOLS = {
 # Lowercase = Black, Uppercase = White, '.' = Empty
 ### chess_array[row_idx][col_idx] ###
 chess_array = [
-    ['r', 'nl', 'bl', 'q', 'k', 'br', 'nr', 'r'],  #row 0 black pieces
-    ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+    #['r', 'nl', 'bl', 'q', 'k', 'br', 'nr', 'r'],  #row 0 black pieces
+    #['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
-    ['.', '.', '.', '.', 'P', '.', '.', '.'],  # E4 Pawn Open example
     ['.', '.', '.', '.', '.', '.', '.', '.'],
-    ['P', 'P', 'P', 'P', '.', 'P', 'P', 'P'],
-    ['R', 'NL', 'BL', 'Q', 'K', 'BR', 'NR', 'R']   #row 7 white pieces
+    ['.', '.', '.', '.', '.', '.', '.', '.'],
+    ['.', '.', '.', '.', '.', '.', '.', '.'],
+    ['.', '.', '.', '.', '.', '.', '.', '.'],
+    ['.', '.', '.', '.', '.', '.', '.', '.'],
+    ['.', '.', '.', '.', '.', '.', '.', '.']
+    #['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+    #['R', 'NL', 'BL', 'Q', 'K', 'BR', 'NR', 'R']   #row 7 white pieces
 ]
    #col0                                col7
 
@@ -108,40 +127,26 @@ def draw_board(board_array):
                 text_rect = text_surface.get_rect(center=rect.center)
                 screen.blit(text_surface, text_rect)
 
-def move_next_pos(board_array, piece_obj):
-        board_array[piece_obj.curr_row_idx][piece_obj.curr_col_idx] = '.'
-        while True:
-            piece_obj.gen_next_pos()
-            if piece_obj.name.islower(): #Black piece
-                if board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] not in ['r', 'nl', 'nr', 'b', 'q', 'k', 'p']:
-                    board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] = piece_obj.name
-                    break
-            else: #White piece
-                if board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] not in ['R', 'NL', 'NR', 'B', 'Q', 'K', 'P']:
-                    board_array[piece_obj.next_row_idx][piece_obj.next_col_idx] = piece_obj.name
-                    break
-        piece_obj.curr_col_idx = piece_obj.next_col_idx
-        piece_obj.curr_row_idx = piece_obj.next_row_idx
-
-    
 clock = pygame.time.Clock()
 
 # 7. Main Game Loop
 
-blkl_kn_obj = Knight('nl', 1, 0)
-blkr_kn_obj = Knight('nr', 6, 0)
-whtl_kn_obj = Knight('NL', 1, 7)
-whtr_kn_obj = Knight('NR', 6, 7)
-blkl_bi_obj = Bishop('bl', 2, 0)
-blkr_bi_obj = Bishop('br', 5, 0)
-whtl_bi_obj = Bishop('BL', 2, 7)
-whtr_bi_obj = Bishop('BR', 5, 7)
+piece_obj_list = []
+piece_obj_list += [Knight('nl', 1, 0)]
+piece_obj_list += [Knight('nr', 6, 0)]
+piece_obj_list += [Knight('NL', 1, 7)]
+piece_obj_list += [Knight('NR', 6, 7)]
+piece_obj_list += [Bishop('bl', 2, 0)]
+piece_obj_list += [Bishop('br', 5, 0)]
+piece_obj_list += [Bishop('BL', 2, 7)]
+piece_obj_list += [Bishop('BR', 5, 7)]
 
-total_pieces = [blkl_kn_obj, blkr_kn_obj, whtl_kn_obj, whtr_kn_obj, blkl_bi_obj, blkr_bi_obj, whtl_bi_obj, whtr_bi_obj]
+for obj in piece_obj_list:
+    chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.name
 
 running = True
 while running:
-    for board_obj in total_pieces:
+    for board_obj in piece_obj_list:
 
         clock.tick(0.5)
 
@@ -155,5 +160,5 @@ while running:
         draw_board(chess_array)
         pygame.display.flip() #Board is (re)drawn here
 
-        move_next_pos(chess_array, board_obj)
+        board_obj.move_next_pos(chess_array)
 

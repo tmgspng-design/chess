@@ -4,8 +4,9 @@ import random
 
 class Piece:
     """A class containing both data and a method."""
-    def __init__(self, name, curr_col_idx, curr_row_idx):
+    def __init__(self, name, symbol, curr_col_idx, curr_row_idx):
         self.name = name      # Obj name
+        self.symbol = symbol
         self.curr_col_idx = curr_col_idx  # Init Col Index
         self.curr_row_idx = curr_row_idx  # Init Row Index
         self.delta_col_idx = 0
@@ -27,13 +28,17 @@ class Piece:
         while True:
             self.gen_next_pos()
             if self.name.islower(): #Black piece
-                if board_array[self.next_row_idx][self.next_col_idx] not in ['r', 'nl', 'nr', 'b', 'q', 'k', 'p']:
-                    board_array[self.next_row_idx][self.next_col_idx] = self.name
+                if board_array[self.next_row_idx][self.next_col_idx] not in ['r', 'n', 'b', 'q', 'k', 'p']:
+                    board_array[self.next_row_idx][self.next_col_idx] = self.symbol
                     break
+                else: #placeholder if smash into own guy
+                    return
             else: #White piece
-                if board_array[self.next_row_idx][self.next_col_idx] not in ['R', 'NL', 'NR', 'B', 'Q', 'K', 'P']:
-                    board_array[self.next_row_idx][self.next_col_idx] = self.name
+                if board_array[self.next_row_idx][self.next_col_idx] not in ['R', 'N', 'B', 'Q', 'K', 'P']:
+                    board_array[self.next_row_idx][self.next_col_idx] = self.symbol
                     break
+                else:
+                    return
         self.curr_col_idx = self.next_col_idx
         self.curr_row_idx = self.next_row_idx
 
@@ -58,6 +63,18 @@ class Bishop(Piece):
                 break
         super().gen_next_pos()
 
+class Pawn(Piece):
+    def gen_next_pos(self):
+        while True:
+            self.delta_col_idx = 0
+            if self.name.islower(): #Black piece
+                self.delta_row_idx = 1
+            else: #White piece
+                self.delta_row_idx = -1
+            if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
+                break
+        super().gen_next_pos()
+
 # 1. Initialize Pygame
 pygame.init()
 
@@ -74,8 +91,8 @@ TEXT_COLOR = (0, 0, 0)          # Black for pieces
 
 # 4. Map Characters/Pieces to Unicode Chess Symbols
 PIECE_SYMBOLS = {
-    'r': '♜', 'nl': '♞', 'nr': '♞', 'bl': '♝', 'br': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
-    'R': '♖', 'NL': '♘', 'NR': '♘', 'BL': '♗', 'BR': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
+    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
+    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
     '.': ''                                                      # Empty Square
 }
 
@@ -131,18 +148,26 @@ clock = pygame.time.Clock()
 
 # 7. Main Game Loop
 
-piece_obj_list = []
-piece_obj_list += [Knight('nl', 1, 0)]
-piece_obj_list += [Knight('nr', 6, 0)]
-piece_obj_list += [Knight('NL', 1, 7)]
-piece_obj_list += [Knight('NR', 6, 7)]
-piece_obj_list += [Bishop('bl', 2, 0)]
-piece_obj_list += [Bishop('br', 5, 0)]
-piece_obj_list += [Bishop('BL', 2, 7)]
-piece_obj_list += [Bishop('BR', 5, 7)]
+piece_obj_list = [] #name, symbol, col, row
+piece_obj_list += [Pawn('PNR', 'P', 6, 6)]
+piece_obj_list += [Pawn('pnr', 'p', 6, 1)]
+piece_obj_list += [Pawn('PBR', 'P', 5, 6)]
+piece_obj_list += [Pawn('pbr', 'p', 5, 1)]
+piece_obj_list += [Pawn('PNL', 'P', 1, 6)]
+piece_obj_list += [Pawn('pnl', 'p', 1, 1)]
+piece_obj_list += [Pawn('PBL', 'P', 2, 6)]
+piece_obj_list += [Pawn('pbl', 'p', 2, 1)]
+piece_obj_list += [Knight('nl', 'n', 1, 0)]
+piece_obj_list += [Knight('nr', 'n', 6, 0)]
+piece_obj_list += [Knight('NL', 'N', 1, 7)]
+piece_obj_list += [Knight('NR', 'N', 6, 7)]
+piece_obj_list += [Bishop('bl', 'b', 2, 0)]
+piece_obj_list += [Bishop('br', 'b', 5, 0)]
+piece_obj_list += [Bishop('BL', 'B', 2, 7)]
+piece_obj_list += [Bishop('BR', 'B', 5, 7)]
 
 for obj in piece_obj_list:
-    chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.name
+    chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.symbol
 
 running = True
 while running:

@@ -13,6 +13,7 @@ class Piece:
         self.delta_row_idx = 0
         self.next_col_idx = 0 # Final Col Index
         self.next_row_idx = 0 # Final Row Index
+        self.active = True # In play
 
     def display_info(self):
         """Method that utilizes the object's data."""
@@ -23,8 +24,13 @@ class Piece:
         self.next_col_idx = self.curr_col_idx + self.delta_col_idx
         self.next_row_idx = self.curr_row_idx + self.delta_row_idx
 
+    def set_active(self, active):
+        self.active = active
+
+    def is_active(self):
+        return self.active
+
     def move_next_pos(self, board_array):
-        board_array[self.curr_row_idx][self.curr_col_idx] = '.'
         while True:
             self.gen_next_pos()
             if self.name.islower(): #Black piece
@@ -39,6 +45,7 @@ class Piece:
                     break
                 else:
                     return
+        board_array[self.curr_row_idx][self.curr_col_idx] = '.'
         self.curr_col_idx = self.next_col_idx
         self.curr_row_idx = self.next_row_idx
 
@@ -59,6 +66,20 @@ class Bishop(Piece):
         while True:
             self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
             self.delta_row_idx = random.choice([-1 * self.delta_col_idx, self.delta_col_idx])
+            if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
+                break
+        super().gen_next_pos()
+
+class Rook(Piece):
+    def gen_next_pos(self):
+        move_across = random.choice([True, False])
+        while True:
+            if move_across:
+                self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
+                self.delta_row_idx = 0
+            else: # move up/dn
+                self.delta_row_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
+                self.delta_col_idx = 0
             if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
                 break
         super().gen_next_pos()
@@ -149,6 +170,10 @@ clock = pygame.time.Clock()
 # 7. Main Game Loop
 
 piece_obj_list = [] #name, symbol, col, row
+piece_obj_list += [Rook('rl', 'r', 0, 0)]
+piece_obj_list += [Rook('rr', 'r', 7, 0)]
+piece_obj_list += [Rook('RL', 'R', 0, 7)]
+piece_obj_list += [Rook('RR', 'R', 7, 7)]
 piece_obj_list += [Pawn('PNR', 'P', 6, 6)]
 piece_obj_list += [Pawn('pnr', 'p', 6, 1)]
 piece_obj_list += [Pawn('PBR', 'P', 5, 6)]
@@ -182,8 +207,14 @@ while running:
                 sys.exit()
             
         # Redraw the UI
+        for obj in piece_obj_list: # Update/remove taken pieces from board/play
+            if chess_array[obj.curr_row_idx][obj.curr_col_idx] != obj.symbol: # I've been taken
+                #obj.active = False
+                obj.set_active(False)
+
         draw_board(chess_array)
         pygame.display.flip() #Board is (re)drawn here
 
-        board_obj.move_next_pos(chess_array)
+        if board_obj.is_active():
+            board_obj.move_next_pos(chess_array)
 

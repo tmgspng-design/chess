@@ -75,31 +75,31 @@ class Bishop(Piece):
                 # check for obstacle piece(s) in move path
                 if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx and self.curr_row_idx < self.curr_row_idx + self.delta_row_idx: # move RIGHT/DOWN
                         count = 0 # number of occupied spaces in vector
-                        for x, y in zip(range(self.curr_col_idx + 1, self.curr_col_idx + self.delta_col_idx), range(self.curr_row_idx + 1, self.curr_row_idx + self.delta_row_idx)): # do not check current and dest pos
+                        for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx + 1), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx + 1)): # do not check current and dest pos
                                 if board_array[y][x] != ".": # if position is already taken
                                     count += 1
-                        if count == 0: # no positions taken (all empty)
+                        if count == 1: # no positions taken (all empty)
                             break # no obstacles so go ahead and move to next_col_idx (end of while loop)
                 elif self.curr_col_idx > self.curr_col_idx + self.delta_col_idx and self.curr_row_idx < self.curr_row_idx + self.delta_row_idx: # move LEFT/DOWN
                         count = 0 # number of occupied spaces in vector
-                        for x, y in zip(range(self.curr_col_idx + self.delta_col_idx + 1, self.curr_col_idx), range(self.curr_row_idx + 1, self.curr_row_idx + self.delta_row_idx)): # do not check current and dest pos
+                        for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx - 1, -1), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx + 1)): # do not check current and dest pos
                                 if board_array[y][x] != ".": # if position is already taken
                                     count += 1
-                        if count == 0: # no positions taken (all empty)
+                        if count == 1: # no positions taken (all empty)
                             break # no obstacles so go ahead and move to next_col_idx (end of while loop)
                 elif self.curr_col_idx > self.curr_col_idx + self.delta_col_idx and self.curr_row_idx > self.curr_row_idx + self.delta_row_idx: # move LEFT/UP
                         count = 0 # number of occupied spaces in vector
-                        for x, y in zip(range(self.curr_col_idx + self.delta_col_idx + 1, self.curr_col_idx), range(self.curr_row_idx + self.delta_row_idx + 1, self.curr_row_idx)): # do not check current and dest pos
+                        for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx - 1, -1), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx - 1, -1)): # do not check current and dest pos
                                 if board_array[y][x] != ".": # if position is already taken
                                     count += 1
-                        if count == 0: # no positions taken (all empty)
+                        if count == 1: # no positions taken (all empty)
                             break # no obstacles so go ahead and move to next_col_idx (end of while loop)
                 else: #self.curr_col_idx < self.curr_col_idx + self.delta_col_idx and self.curr_row_idx > self.curr_row_idx + self.delta_row_idx: # move RIGHT/UP
                         count = 0 # number of occupied spaces in vector
-                        for x, y in zip(range(self.curr_col_idx + 1, self.curr_col_idx + self.delta_col_idx), range(self.curr_row_idx + self.delta_row_idx + 1, self.curr_row_idx)): # do not check current and dest pos
+                        for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx + 1), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx - 1, -1)): # do not check current and dest pos
                                 if board_array[y][x] != ".": # if position is already taken
                                     count += 1
-                        if count == 0: # no positions taken (all empty)
+                        if count == 1: # no positions taken (all empty)
                             break # no obstacles so go ahead and move to next_col_idx (end of while loop)
             else: # not in board boundary (regen while loop move)
                 continue

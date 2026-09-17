@@ -26,20 +26,62 @@ class Piece:
         self.next_col_idx = self.curr_col_idx + self.delta_col_idx
         self.next_row_idx = self.curr_row_idx + self.delta_row_idx
 
+    # check for obstacle piece(s) in move path
     def chk_move_path(self, board_array):
-        # check for obstacle piece(s) in move path
-        if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
-            sgnc = 1 # move RIGHT
+        # Rook movement
+        if self.curr_row_idx == self.curr_row_idx + self.delta_row_idx: # move LEFT/RIGHT
+            if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
+                sgnc = 1 # move RIGHT
+            else:
+                sgnc = -1 # move LEFT
+            count = 0 # number of occupied spaces in vector
+            for x in range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx + sgnc, sgnc): # do not check current and dest pos
+                if board_array[self.curr_row_idx][x] != ".": # if position is already taken
+                    count += 1
+                if x == self.curr_col_idx + self.delta_col_idx: # check destination spot
+                    if self.name.islower(): # moving black piece
+                        if board_array[self.curr_row_idx][x] in ['R', 'N', 'B', 'Q', 'K', 'P']: # destination spot already has white piece
+                            count -= 1
+                    else: # moving white piece
+                        if board_array[self.curr_row_idx][x] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
+                            count -= 1
+        elif self.curr_col_idx == self.curr_col_idx + self.delta_col_idx: # move UP/DOWN
+            if self.curr_row_idx < self.curr_row_idx + self.delta_row_idx:
+                sgnr = 1 # move DOWN
+            else:
+                sgnr = -1 # move UP
+            count = 0 # number of occupied spaces in vector
+            for x in range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx + sgnr, sgnr): # do not check current and dest pos
+                if board_array[x][self.curr_col_idx] != ".":
+                    count += 1
+                if x == self.curr_row_idx + self.delta_row_idx: # check destination spot
+                    if self.name.islower(): # moving black piece
+                        if board_array[x][self.curr_col_idx] in ['R', 'N', 'B', 'Q', 'K', 'P']: # destination spot already has white piece
+                            count -= 1
+                    else: # moving white piece
+                        if board_array[x][self.curr_col_idx] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
+                            count -= 1
         else:
-            sgnc = -1 # move LEFT
-        if self.curr_row_idx < self.curr_row_idx + self.delta_row_idx:
-            sgnr = 1 # move DOWN
-        else:
-            sgnr = -1 # move UP
-        count = 0 # number of occupied spaces in vector
-        for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx + sgnc, sgnc), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx + sgnr, sgnr)): # do not check current and dest pos
-            if board_array[y][x] != ".": # if position is already taken
-                count += 1
+        # Bishop movement
+            if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
+                sgnc = 1 # move RIGHT
+            else:
+                sgnc = -1 # move LEFT
+            if self.curr_row_idx < self.curr_row_idx + self.delta_row_idx:
+                sgnr = 1 # move DOWN
+            else:
+                sgnr = -1 # move UP
+            count = 0 # number of occupied spaces in vector
+            for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx + sgnc, sgnc), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx + sgnr, sgnr)): # do not check current and dest pos
+                if board_array[y][x] != ".": # if position is already taken
+                    count += 1
+                if (x, y) == (self.curr_col_idx + self.delta_col_idx, self.curr_row_idx + self.delta_row_idx): # check destination spot
+                    if self.name.islower(): # moving black piece
+                        if board_array[y][x] in ['R', 'N', 'B', 'Q', 'K', 'P']: # destination spot already has white piece
+                            count -= 1
+                    else: # moving white piece
+                        if board_array[y][x] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
+                            count -= 1
         if count == 1: # no positions taken (all empty)
             return True
         else:
@@ -99,8 +141,9 @@ class Bishop(Piece):
 
 class Rook(Piece):
     def gen_next_pos(self, board_array):
-        move_across = random.choice([True, False])
+        #move_across = random.choice([True, False])
         while True:
+            move_across = random.choice([True, False])
             if move_across:
                 self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
                 self.delta_row_idx = 0
@@ -189,6 +232,7 @@ PIECE_SYMBOLS = {
 ### chess_array[row_idx][col_idx] ###
 chess_array = [
     ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],  #row 0 black pieces
+    #['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
     #['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
     #['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
@@ -199,6 +243,7 @@ chess_array = [
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     #['.', '.', '.', '.', '.', '.', '.', '.']
     #['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+    #['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
     ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']   #row 7 white pieces
 ]
    #col0                                col7
@@ -253,10 +298,10 @@ piece_obj_list += [Knight('nl', 'n', 1, 0)]
 piece_obj_list += [Knight('nr', 'n', 6, 0)]
 piece_obj_list += [Knight('NL', 'N', 1, 7)]
 piece_obj_list += [Knight('NR', 'N', 6, 7)]
-#piece_obj_list += [Bishop('bl', 'b', 2, 0)]
-#piece_obj_list += [Bishop('br', 'b', 5, 0)]
-#piece_obj_list += [Bishop('BL', 'B', 2, 7)]
-#piece_obj_list += [Bishop('BR', 'B', 5, 7)]
+piece_obj_list += [Bishop('bl', 'b', 2, 0)]
+piece_obj_list += [Bishop('br', 'b', 5, 0)]
+piece_obj_list += [Bishop('BL', 'B', 2, 7)]
+piece_obj_list += [Bishop('BR', 'B', 5, 7)]
 
 for obj in piece_obj_list:
     chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.symbol

@@ -151,21 +151,6 @@ class Rook(Piece):
                 if 0 <= self.curr_col_idx + self.delta_col_idx <= 7: # in board boundary
                     if self.chk_move_path(board_array): # check obstacle piece(s)
                         break
-#                    # check for obstacle piece(s) in move path
-#                    if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx: # move RIGHT
-#                        count = 0 # number of occupied spaces in vector
-#                        for x in range(self.curr_col_idx + 1, self.curr_col_idx + self.delta_col_idx): # do not check current and dest pos
-#                            if board_array[self.curr_row_idx][x] != ".": # if position is already taken
-#                                count += 1
-#                        if count == 0: # no positions taken (all empty)
-#                            break # no obstacles so go ahead and move to next_col_idx (end of while loop)
-#                    elif self.curr_col_idx > self.curr_col_idx + self.delta_col_idx: # move LEFT
-#                        count = 0 # number of occupied spaces in vector
-#                        for x in range(self.curr_col_idx + self.delta_col_idx + 1, self.curr_col_idx):
-#                            if board_array[self.curr_row_idx][x] != ".":
-#                                count += 1
-#                        if count == 0:
-#                            break
                 else: # not in board boundary (regen while loop move)
                     continue
             else: # move up/dn
@@ -175,21 +160,6 @@ class Rook(Piece):
                 if 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
                     if self.chk_move_path(board_array): # check obstacle piece(s)
                         break
-#                    # check for obstacle piece(s) in move path
-#                    if self.curr_row_idx < self.curr_row_idx + self.delta_row_idx: # move DOWN
-#                        count = 0 # number of occupied spaces in vector
-#                        for x in range(self.curr_row_idx + 1, self.curr_row_idx + self.delta_row_idx): # do not check current and dest pos
-#                            if board_array[x][self.curr_col_idx] != ".":
-#                                count += 1
-#                        if count == 0:
-#                            break # no obstacles so go ahead and move to next_row_idx
-#                    elif self.curr_row_idx > self.curr_row_idx + self.delta_row_idx: # move UP
-#                        count = 0 # number of occupied spaces in vector
-#                        for x in range(self.curr_row_idx + self.delta_row_idx + 1, self.curr_row_idx):
-#                            if board_array[x][self.curr_col_idx] != ".":
-#                                count += 1
-#                        if count == 0:
-#                            break
                 else: # not in board boundary (regen move)
                     continue
         super().gen_next_pos(board_array)
@@ -232,18 +202,12 @@ PIECE_SYMBOLS = {
 ### chess_array[row_idx][col_idx] ###
 chess_array = [
     ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],  #row 0 black pieces
-    #['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-    #['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
-    #['.', '.', '.', '.', '.', '.', '.', '.'],
+    ['.', '.', 'p', '.', '.', 'p', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
-    ['.', '.', '.', '.', '.', '.', '.', '.'],
-    ['.', '.', '.', '.', '.', '.', '.', '.'],
-    #['.', '.', '.', '.', '.', '.', '.', '.']
-    #['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-    #['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+    ['.', '.', 'P', '.', '.', 'P', '.', '.'],
     ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']   #row 7 white pieces
 ]
    #col0                                col7

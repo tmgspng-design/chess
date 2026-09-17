@@ -2,10 +2,9 @@ import pygame
 import sys
 import random
 
-random.seed(42)
+random.seed(2)
 
 class Piece:
-    """A class containing both data and a method."""
     def __init__(self, name, symbol, curr_col_idx, curr_row_idx):
         self.name = name      # Obj name
         self.symbol = symbol  # r n b q k p R N B Q K P
@@ -17,18 +16,14 @@ class Piece:
         self.next_row_idx = 0 # Final Row Index
         self.active = True # In play
 
-    def display_info(self):
-        """Method that utilizes the object's data."""
-        return f"Name: {self.name}"
-
     def gen_next_pos(self, board_array):
-        print(f"Delta RC after {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
+        print(f"Delta RC for {self.name}: ROW = {self.delta_row_idx} COL = {self.delta_col_idx}")
         self.next_col_idx = self.curr_col_idx + self.delta_col_idx
         self.next_row_idx = self.curr_row_idx + self.delta_row_idx
 
     # check for obstacle piece(s) in move path
     def chk_move_path(self, board_array):
-        # Rook movement
+        # horizontal/vertical movement (Rook/Queen)
         if self.curr_row_idx == self.curr_row_idx + self.delta_row_idx: # move LEFT/RIGHT
             if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
                 sgnc = 1 # move RIGHT
@@ -62,7 +57,7 @@ class Piece:
                         if board_array[x][self.curr_col_idx] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
                             count -= 1
         else:
-        # Bishop movement
+        # diagnol movement (Bishop/Queen)
             if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
                 sgnc = 1 # move RIGHT
             else:
@@ -87,10 +82,39 @@ class Piece:
         else:
             return False
 
-    def set_active(self, active):
+    # diagnol movement (Bishop/Queen)
+    def gen_diag_pos(self, board_array):
+        self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
+        self.delta_row_idx = random.choice([-1 * self.delta_col_idx, self.delta_col_idx])
+        # check for board boundary
+        if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
+            return self.chk_move_path(board_array) # check obstacle piece(s) ; if none (OK to move) then return True
+        else: # not in board boundary (regen while loop move)
+            return False
+
+    # horizontal/vertical movement (Rook/Queen)
+    def gen_hv_pos(self, board_array, horiz_move):
+            if horiz_move: # horizontal move
+                self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
+                self.delta_row_idx = 0
+#               print(f"Delta RC across random try {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
+                if 0 <= self.curr_col_idx + self.delta_col_idx <= 7: # in board boundary
+                    return self.chk_move_path(board_array) # check obstacle piece(s) ; if none (OK to move) then return True
+                else: # not in board boundary (regen while loop move)
+                    return False
+            else: # vertical move 
+                self.delta_row_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
+                self.delta_col_idx = 0
+#               print(f"Delta RC up/dn random try {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
+                if 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
+                    return self.chk_move_path(board_array) # check obstacle piece(s)
+                else: # not in board boundary (regen while loop move)
+                    return False
+
+    def set_active(self, active): # True if piece has not been taken; False if piece has been taken
         self.active = active
 
-    def is_active(self):
+    def is_active(self): # True if piece has not been taken; False if piece has been taken
         return self.active
 
     # checks for smashing into own guy; updates current position
@@ -126,42 +150,33 @@ class Knight(Piece):
                 break
         super().gen_next_pos(board_array)
 
+class Queen(Piece):
+    def gen_next_pos(self, board_array):
+        while True:
+            move_diagonal = random.choice([True, False])
+            if move_diagonal:
+                if self.gen_diag_pos(board_array): # returns True if OK to move
+                    break
+            else: # move up/dn (not diagonal)
+                move_across = random.choice([True, False])
+                if move_across:
+                    if self.gen_hv_pos(board_array, move_across): # returns True if OK to move
+                        break
+        super().gen_next_pos(board_array)
+
 class Bishop(Piece):
     def gen_next_pos(self, board_array):
         while True:
-            self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
-            self.delta_row_idx = random.choice([-1 * self.delta_col_idx, self.delta_col_idx])
-            # check for board boundary
-            if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
-                if self.chk_move_path(board_array): # check obstacle piece(s)
-                    break
-            else: # not in board boundary (regen while loop move)
-                continue
+            if self.gen_diag_pos(board_array): # returns True if OK to move
+                break
         super().gen_next_pos(board_array)
 
 class Rook(Piece):
     def gen_next_pos(self, board_array):
-        #move_across = random.choice([True, False])
         while True:
             move_across = random.choice([True, False])
-            if move_across:
-                self.delta_col_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
-                self.delta_row_idx = 0
-                print(f"Delta RC across random try {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
-                if 0 <= self.curr_col_idx + self.delta_col_idx <= 7: # in board boundary
-                    if self.chk_move_path(board_array): # check obstacle piece(s)
-                        break
-                else: # not in board boundary (regen while loop move)
-                    continue
-            else: # move up/dn
-                self.delta_row_idx = random.choice([-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7])
-                self.delta_col_idx = 0
-                print(f"Delta RC up/dn random try {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
-                if 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
-                    if self.chk_move_path(board_array): # check obstacle piece(s)
-                        break
-                else: # not in board boundary (regen move)
-                    continue
+            if self.gen_hv_pos(board_array, move_across): # returns True if OK to move
+                break
         super().gen_next_pos(board_array)
 
 class Pawn(Piece):
@@ -246,6 +261,8 @@ clock = pygame.time.Clock()
 # 7. Main Game Loop
 
 piece_obj_list = [] #name, symbol, col, row
+piece_obj_list += [Queen('qu', 'q', 3, 0)]
+piece_obj_list += [Queen('QU', 'Q', 3, 7)]
 piece_obj_list += [Rook('rl', 'r', 0, 0)]
 piece_obj_list += [Rook('rr', 'r', 7, 0)]
 piece_obj_list += [Rook('RL', 'R', 0, 7)]

@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 
-random.seed(2)
+random.seed(22)
 
 class Piece:
     def __init__(self, name, symbol, curr_col_idx, curr_row_idx):
@@ -22,8 +22,26 @@ class Piece:
         self.next_row_idx = self.curr_row_idx + self.delta_row_idx
 
     # check for obstacle piece(s) in move path
+    def chk_jump_path(self, board_array):
+        count = 0 # number of occupied spaces in vector
+        if board_array[self.curr_row_idx][self.curr_col_idx] != ".": # if init position is already occupied (should always be!)
+            count += 1
+        if board_array[self.curr_row_idx + self.delta_row_idx][self.curr_col_idx + self.delta_col_idx] != ".": # if dest position is already occupied
+            count += 1
+            if self.name.islower(): # moving black piece
+                if board_array[self.curr_row_idx + self.delta_row_idx][self.curr_col_idx + self.delta_col_idx] in ['R', 'N', 'B', 'Q', 'K', 'P']: # destination spot already has white piece
+                    count -= 1
+            else: # moving white piece
+                if board_array[self.curr_row_idx + self.delta_row_idx][self.curr_col_idx + self.delta_col_idx] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
+                    count -= 1
+        if count == 1: # no positions taken (all empty)
+            return True
+        else:
+            return False
+
+
     def chk_move_path(self, board_array):
-        # horizontal/vertical movement (Rook/Queen)
+        # horizontal/vertical movement (Rook/Queen/King)
         if self.curr_row_idx == self.curr_row_idx + self.delta_row_idx: # move LEFT/RIGHT
             if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
                 sgnc = 1 # move RIGHT
@@ -57,7 +75,7 @@ class Piece:
                         if board_array[x][self.curr_col_idx] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
                             count -= 1
         else:
-        # diagonal movement (Bishop/Queen)
+        # diagonal movement (Bishop/Queen/King)
             if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
                 sgnc = 1 # move RIGHT
             else:
@@ -82,7 +100,20 @@ class Piece:
         else:
             return False
 
-    # diagonal movement (Bishop/Queen)
+    # jump movement (Knight)
+    def gen_jump_pos(self, board_array):
+        self.delta_col_idx = random.choice([-2,-1,1,2])
+        if self.delta_col_idx in [-2,2]:
+            self.delta_row_idx = random.choice([-1,1])
+        else: # self.delta_col_idx in [-1,1]
+            self.delta_row_idx = random.choice([-2,2])
+        # check for board boundary
+        if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
+            return self.chk_jump_path(board_array) # check obstacle piece(s) ; if none (OK to move) then return True
+        else: # not in board boundary (regen while loop move)
+            return False
+
+    # diagonal movement (Bishop/Queen/King)
     def gen_diag_pos(self, board_array):
         if self.symbol in ['k', 'K']:
             self.delta_col_idx = random.choice([-1,1])
@@ -95,7 +126,7 @@ class Piece:
         else: # not in board boundary (regen while loop move)
             return False
 
-    # horizontal/vertical movement (Rook/Queen)
+    # horizontal/vertical movement (Rook/Queen/King)
     def gen_hv_pos(self, board_array, horiz_move):
             if horiz_move: # horizontal move
                 if self.symbol in ['k', 'K']:
@@ -149,17 +180,11 @@ class Piece:
 class Knight(Piece):
     def gen_next_pos(self, board_array):
         while True:
-            self.delta_col_idx = random.choice([-2,-1,1,2])
-            if self.delta_col_idx in [-2,2]:
-                self.delta_row_idx = random.choice([-1,1])
-            else: # self.delta_col_idx in [-1,1]
-                self.delta_row_idx = random.choice([-2,2])
-            # check for board boundary
-            if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
+            if self.gen_jump_pos(board_array): # returns True if OK to move
                 break
         super().gen_next_pos(board_array)
 
-class Queen(Piece):
+class QueenKing(Piece):
     def gen_next_pos(self, board_array):
         while True:
             move_diagonal = random.choice([True, False])
@@ -186,20 +211,6 @@ class Rook(Piece):
             move_across = random.choice([True, False])
             if self.gen_hv_pos(board_array, move_across): # returns True if OK to move
                 break
-        super().gen_next_pos(board_array)
-
-class King(Piece):
-    def gen_next_pos(self, board_array):
-        while True:
-            move_diagonal = random.choice([True, False])
-            if move_diagonal:
-                if self.gen_diag_pos(board_array): # returns True if OK to move
-                    break
-            else: # move up/dn (not diagonal)
-                move_across = random.choice([True, False])
-                if move_across:
-                    if self.gen_hv_pos(board_array, move_across): # returns True if OK to move
-                        break
         super().gen_next_pos(board_array)
 
 class Pawn(Piece):
@@ -284,8 +295,8 @@ clock = pygame.time.Clock()
 # 7. Main Game Loop
 
 piece_obj_list = [] #name, symbol, col, row
-piece_obj_list += [Queen('qn', 'q', 3, 0)]
-piece_obj_list += [Queen('QN', 'Q', 3, 7)]
+piece_obj_list += [QueenKing('qn', 'q', 3, 0)]
+piece_obj_list += [QueenKing('QN', 'Q', 3, 7)]
 piece_obj_list += [Rook('rl', 'r', 0, 0)]
 piece_obj_list += [Rook('rr', 'r', 7, 0)]
 piece_obj_list += [Rook('RL', 'R', 0, 7)]
@@ -306,8 +317,8 @@ piece_obj_list += [Bishop('bl', 'b', 2, 0)]
 piece_obj_list += [Bishop('br', 'b', 5, 0)]
 piece_obj_list += [Bishop('BL', 'B', 2, 7)]
 piece_obj_list += [Bishop('BR', 'B', 5, 7)]
-piece_obj_list += [King('kg', 'k', 4, 0)]
-piece_obj_list += [King('KG', 'K', 4, 7)]
+piece_obj_list += [QueenKing('kg', 'k', 4, 0)]
+piece_obj_list += [QueenKing('KG', 'K', 4, 7)]
 
 for obj in piece_obj_list:
     chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.symbol

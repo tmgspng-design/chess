@@ -21,7 +21,7 @@ class Piece:
         self.next_col_idx = self.curr_col_idx + self.delta_col_idx
         self.next_row_idx = self.curr_row_idx + self.delta_row_idx
 
-    # check for obstacle piece(s) in move path
+    # check for obstacle piece(s) in jump move path
     def chk_jump_path(self, board_array):
         count = 0 # number of occupied spaces in vector
         if board_array[self.curr_row_idx][self.curr_col_idx] != ".": # if init position is already occupied (should always be!)
@@ -39,9 +39,8 @@ class Piece:
         else:
             return False
 
-
-    def chk_move_path(self, board_array):
-        # horizontal/vertical movement (Rook/Queen/King)
+    # check for obstacle piece(s) in horizontal/vertical move path
+    def chk_hv_path(self, board_array):
         if self.curr_row_idx == self.curr_row_idx + self.delta_row_idx: # move LEFT/RIGHT
             if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
                 sgnc = 1 # move RIGHT
@@ -74,27 +73,32 @@ class Piece:
                     else: # moving white piece
                         if board_array[x][self.curr_col_idx] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
                             count -= 1
+        if count == 1: # no positions taken (all empty)
+            return True
         else:
-        # diagonal movement (Bishop/Queen/King)
-            if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
-                sgnc = 1 # move RIGHT
-            else:
-                sgnc = -1 # move LEFT
-            if self.curr_row_idx < self.curr_row_idx + self.delta_row_idx:
-                sgnr = 1 # move DOWN
-            else:
-                sgnr = -1 # move UP
-            count = 0 # number of occupied spaces in vector
-            for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx + sgnc, sgnc), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx + sgnr, sgnr)): # do not check current and dest pos
-                if board_array[y][x] != ".": # if position is already taken
-                    count += 1
-                if (x, y) == (self.curr_col_idx + self.delta_col_idx, self.curr_row_idx + self.delta_row_idx): # check destination spot
-                    if self.name.islower(): # moving black piece
-                        if board_array[y][x] in ['R', 'N', 'B', 'Q', 'K', 'P']: # destination spot already has white piece
-                            count -= 1
-                    else: # moving white piece
-                        if board_array[y][x] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
-                            count -= 1
+            return False
+
+    # check for obstacle piece(s) in diagonal move path
+    def chk_diag_path(self, board_array):
+        if self.curr_col_idx < self.curr_col_idx + self.delta_col_idx:
+            sgnc = 1 # move RIGHT
+        else:
+            sgnc = -1 # move LEFT
+        if self.curr_row_idx < self.curr_row_idx + self.delta_row_idx:
+            sgnr = 1 # move DOWN
+        else:
+            sgnr = -1 # move UP
+        count = 0 # number of occupied spaces in vector
+        for x, y in zip(range(self.curr_col_idx, self.curr_col_idx + self.delta_col_idx + sgnc, sgnc), range(self.curr_row_idx, self.curr_row_idx + self.delta_row_idx + sgnr, sgnr)): # do not check current and dest pos
+            if board_array[y][x] != ".": # if position is already taken
+                count += 1
+            if (x, y) == (self.curr_col_idx + self.delta_col_idx, self.curr_row_idx + self.delta_row_idx): # check destination spot
+                if self.name.islower(): # moving black piece
+                    if board_array[y][x] in ['R', 'N', 'B', 'Q', 'K', 'P']: # destination spot already has white piece
+                        count -= 1
+                else: # moving white piece
+                    if board_array[y][x] in ['r', 'n', 'b', 'q', 'k', 'p']: # destination spot already has black piece
+                        count -= 1
         if count == 1: # no positions taken (all empty)
             return True
         else:
@@ -122,7 +126,7 @@ class Piece:
         self.delta_row_idx = random.choice([-1 * self.delta_col_idx, self.delta_col_idx])
         # check for board boundary
         if 0 <= self.curr_col_idx + self.delta_col_idx <= 7 and 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
-            return self.chk_move_path(board_array) # check obstacle piece(s) ; if none (OK to move) then return True
+            return self.chk_diag_path(board_array) # check obstacle piece(s) ; if none (OK to move) then return True
         else: # not in board boundary (regen while loop move)
             return False
 
@@ -136,7 +140,7 @@ class Piece:
                 self.delta_row_idx = 0
 #               print(f"Delta RC across random try {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
                 if 0 <= self.curr_col_idx + self.delta_col_idx <= 7: # in board boundary
-                    return self.chk_move_path(board_array) # check obstacle piece(s) ; if none (OK to move) then return True
+                    return self.chk_hv_path(board_array) # check obstacle piece(s) ; if none (OK to move) then return True
                 else: # not in board boundary (regen while loop move)
                     return False
             else: # vertical move 
@@ -147,7 +151,7 @@ class Piece:
                 self.delta_col_idx = 0
 #               print(f"Delta RC up/dn random try {self.name} {self.delta_row_idx}  {self.delta_col_idx}")
                 if 0 <= self.curr_row_idx + self.delta_row_idx <= 7:
-                    return self.chk_move_path(board_array) # check obstacle piece(s)
+                    return self.chk_hv_path(board_array) # check obstacle piece(s)
                 else: # not in board boundary (regen while loop move)
                     return False
 
@@ -157,22 +161,10 @@ class Piece:
     def is_active(self): # True if piece has not been taken; False if piece has been taken
         return self.active
 
-    # checks for smashing into own guy; updates current position
+    # move Piece from prev pos to next pos on board array
     def move_next_pos(self, board_array):
-        while True:
-            self.gen_next_pos(board_array)
-            if self.name.islower(): #Black piece
-                if board_array[self.next_row_idx][self.next_col_idx] not in ['r', 'n', 'b', 'q', 'k', 'p']:
-                    board_array[self.next_row_idx][self.next_col_idx] = self.symbol
-                    break
-                else: #placeholder if smash into own guy
-                    return
-            else: #White piece
-                if board_array[self.next_row_idx][self.next_col_idx] not in ['R', 'N', 'B', 'Q', 'K', 'P']:
-                    board_array[self.next_row_idx][self.next_col_idx] = self.symbol
-                    break
-                else:
-                    return
+        self.gen_next_pos(board_array)
+        board_array[self.next_row_idx][self.next_col_idx] = self.symbol
         board_array[self.curr_row_idx][self.curr_col_idx] = '.'
         self.curr_col_idx = self.next_col_idx
         self.curr_row_idx = self.next_row_idx

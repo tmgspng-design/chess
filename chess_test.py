@@ -14,7 +14,7 @@ chess_array_inplay = [
     ['.', '.', '.', '.', '.', 'R', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
-    ['.', '.', '.', '.', '.', '.', 'K', '.'],
+    ['.', '.', '.', '.', 'P', '.', 'K', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', '.', '.', '.', '.', '.', '.', '.']   #row 7 white pieces
 ]
@@ -39,22 +39,20 @@ for delta_col_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
                 sgnr = 1 # move DOWN
             else:
                 sgnr = -1 # move UP
-            count = 0 # number of occupied spaces in vector
             for x, y in zip(range(curr_col_idx, curr_col_idx + delta_col_idx + sgnc, sgnc), range(curr_row_idx, curr_row_idx + delta_row_idx + sgnr, sgnr)): # check each spot along path to dest stop
-                if chess_array_inplay[y][x] != ".": # if position is already taken by piece (first/orig spot will always be take by orig piece pos)
-                    count += 1
-                if (x, y) == (curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx): # arrive here means spot not empty so need to check if ally
-                    if chess_array_inplay[y][x] in ['R', 'N', 'B', 'Q', 'K', 'P']: # the checked spot already has a white piece
-                        count -= 1
-            if count == 1: # no positions taken (all empty)
-                attack_pos_list.append([delta_col_idx, delta_row_idx])
-                attack_pos_list2.append([curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx])
+                if (x, y) == (curr_col_idx , curr_row_idx ): # do not check current piece pos
+                    continue
+                elif chess_array_inplay[y][x] in ['R', 'N', 'B', 'Q', 'K', 'P']: # if any pos along path occupied by ally piece
+                    break
+                elif (x, y) == (curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx): # all path empty so ok to add pos to attack space
+                    attack_pos_list.append([delta_col_idx, delta_row_idx])
+                    attack_pos_list2.append([curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx])
 
 #find_attack_space()
 
 for dcol, drow in attack_pos_list:
     #chess_array_valid[curr_col_idx + dcol][curr_row_idx + drow] = 'x'
-    chess_array_valid[curr_row_idx + dcol][curr_col_idx + drow] = 'x'
+    chess_array_valid[curr_row_idx + drow][curr_col_idx + dcol] = 'x'
     pass
     #breakpoint()
 

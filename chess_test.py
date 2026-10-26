@@ -20,40 +20,35 @@ chess_array_inplay = [
 ]
 
 attack_pos_list = []
-attack_pos_list2 = []
+attack_pos_list_all = []
 curr_col_idx = 3
 curr_row_idx = 4
-#chess_array_inplay[curr_col_idx][curr_row_idx] = 'B' #start pos of white piece
 chess_array_inplay[curr_row_idx][curr_col_idx] = 'B' #start pos of white piece
 
-#def find_attack_space():
 for delta_col_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
     for delta_row_idx in [-1 * delta_col_idx, delta_col_idx]:
-        #attack_pos_list += (delta_col_idx, delta_row_idx)
-        if 0 <= curr_col_idx + delta_col_idx <= 7 and 0 <= curr_row_idx + delta_row_idx <= 7:
-            if curr_col_idx < curr_col_idx + delta_col_idx:
+        attack_pos_list_all.append([curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx])
+        attack_pos_list.append([curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx])
+
+for col, row in attack_pos_list_all:
+        if 0 <= col <= 7 and 0 <= row <= 7:
+            if curr_col_idx < col:
                 sgnc = 1 # move RIGHT
             else:
                 sgnc = -1 # move LEFT
-            if curr_row_idx < curr_row_idx + delta_row_idx:
+            if curr_row_idx < row:
                 sgnr = 1 # move DOWN
             else:
                 sgnr = -1 # move UP
-            for x, y in zip(range(curr_col_idx, curr_col_idx + delta_col_idx + sgnc, sgnc), range(curr_row_idx, curr_row_idx + delta_row_idx + sgnr, sgnr)): # check each spot along path to dest stop
+            for x, y in zip(range(curr_col_idx, col + sgnc, sgnc), range(curr_row_idx, row + sgnr, sgnr)): # check each spot along path to dest stop
                 if (x, y) == (curr_col_idx , curr_row_idx ): # do not check current piece pos
                     continue
                 elif chess_array_inplay[y][x] in ['R', 'N', 'B', 'Q', 'K', 'P']: # if any pos along path occupied by ally piece
-                    break
-                elif (x, y) == (curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx): # all path empty so ok to add pos to attack space
-                    attack_pos_list.append([delta_col_idx, delta_row_idx])
-                    attack_pos_list2.append([curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx])
+                    attack_pos_list.remove([col, row])
+        else:
+            attack_pos_list.remove([col, row])
 
-#find_attack_space()
-
-for dcol, drow in attack_pos_list:
-    #chess_array_valid[curr_col_idx + dcol][curr_row_idx + drow] = 'x'
-    chess_array_valid[curr_row_idx + drow][curr_col_idx + dcol] = 'x'
+for col, row in attack_pos_list:
+    chess_array_valid[row][col] = 'x'
     pass
-    #breakpoint()
 
-# end of program

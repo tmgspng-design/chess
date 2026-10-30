@@ -65,6 +65,14 @@ class Bishop(Piece):
                 self.attack_pos_list_all.append([self.curr_col_idx + delta_col_idx, self.curr_row_idx + delta_row_idx])
         super().gen_attack_space()
 
+class Rook(Piece):
+    def gen_attack_space(self):
+        for delta_col_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
+            self.attack_pos_list_all.append([self.curr_col_idx + delta_col_idx, self.curr_row_idx])
+        for delta_row_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
+            self.attack_pos_list_all.append([self.curr_col_idx, self.curr_row_idx + delta_row_idx])
+        super().gen_attack_space()
+
 chess_array = [
     ['.', '.', '.', '.', '.', '.', '.', '.'],  #row 0 black pieces
     ['.', '.', '.', '.', '.', '.', '.', '.'],
@@ -76,10 +84,18 @@ chess_array = [
     ['.', '.', '.', '.', '.', '.', '.', '.']   #row 7 white pieces
 ]
 
-bishop_obj = Bishop('BL', 'B', 2, 7, chess_array)
+piece_obj_list = [] #name, symbol, col, row, chess_array
 
-bishop_obj.gen_attack_space()
+piece_obj_list += [Bishop('BL', 'B', 2, 7, chess_array)]
+piece_obj_list += [Rook('RR', 'R', 7, 7, chess_array)]
 
-for col, row in bishop_obj.attack_pos_list:
-    chess_array[row][col] = 'x'
-    pass
+for obj in piece_obj_list:
+    chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.symbol
+
+for obj in piece_obj_list:
+    obj.gen_attack_space()
+
+for obj in piece_obj_list:
+    for col, row in obj.attack_pos_list:
+        chess_array[row][col] = 'x'
+        pass

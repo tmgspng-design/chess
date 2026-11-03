@@ -11,6 +11,8 @@ class Piece: # base class for all chess pieces
         self.attack_pos_list = [] # all available move positions wrt current position and obstacles
 
     def gen_attack_space(self): # base method to create available move positions list
+        self.attack_pos_list_bound = []
+        self.attack_pos_list = [] # all available move positions wrt current position and obstacles
         for col, row in self.attack_pos_list_all:
             if 0 <= col <= 7 and 0 <= row <= 7:
                 self.attack_pos_list_bound.append([col, row])
@@ -57,6 +59,7 @@ class Piece: # base class for all chess pieces
 
 class Bishop(Piece):
     def gen_attack_space(self):
+        self.attack_pos_list_all = []
         for delta_col_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
             for delta_row_idx in [-1 * delta_col_idx, delta_col_idx]:
                 self.attack_pos_list_all.append([self.curr_col_idx + delta_col_idx, self.curr_row_idx + delta_row_idx])
@@ -64,6 +67,7 @@ class Bishop(Piece):
 
 class Rook(Piece):
     def gen_attack_space(self):
+        self.attack_pos_list_all = []
         for delta_col_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
             self.attack_pos_list_all.append([self.curr_col_idx + delta_col_idx, self.curr_row_idx])
         for delta_row_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
@@ -85,8 +89,9 @@ chess_array = [
 
 piece_obj_list = [] #name, symbol, col, row, chess_array
 
-piece_obj_list += [Bishop('QB', 'B', 2, 7, chess_array)]
-piece_obj_list += [Rook('KR', 'R', 7, 7, chess_array)]
+piece_obj_list += [Bishop('qb', 'b', 3, 4, chess_array)] # black bishop
+#piece_obj_list += [Bishop('QB', 'B', 2, 7, chess_array)]
+piece_obj_list += [Rook('KR', 'R', 7, 7, chess_array)] # white knight
 
 for obj in piece_obj_list:
     chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.symbol # place pieces onto chess board
@@ -94,7 +99,28 @@ for obj in piece_obj_list:
 for obj in piece_obj_list:
     obj.gen_attack_space() # create availabe move pos for each piece
 
-for obj in piece_obj_list:
-    for col, row in obj.attack_pos_list:
-        chess_array[row][col] = 'x' # mark all available pos for all pieces on board (may overlap)
-        pass
+rook_obj = next((p for p in piece_obj_list if p.name == 'KR'), None)
+bishop_obj = next((p for p in piece_obj_list if p.name == 'qb'), None)
+rook_move_pos_list = rook_obj.attack_pos_list # save all pos where rook can move to
+rook_orig_curr_col_idx = rook_obj.curr_col_idx
+rook_orig_curr_row_idx = rook_obj.curr_row_idx
+
+break_all = False
+
+for col, row in rook_move_pos_list: # check attack space for each move pos
+    rook_obj.curr_col_idx = col
+    rook_obj.curr_row_idx = row
+    rook_obj.gen_attack_space() # create availabe move pos wrt this curr pos being checked
+    for c, r in rook_obj.attack_pos_list: # checks its attack space to see if enemy bishop is within it
+        if c == bishop_obj.curr_col_idx and r == bishop_obj.curr_row_idx: # if so, move rook there to threaten it
+            chess_array[rook_orig_curr_row_idx][rook_orig_curr_col_idx] = '.' # move the rook away
+            chess_array[rook_obj.curr_row_idx][rook_obj.curr_col_idx] = rook_obj.symbol # move the rook here
+            break_all = True
+            break
+    if break_all:
+        break
+
+#for obj in piece_obj_list:
+    #for col, row in obj.attack_pos_list:
+        #chess_array[row][col] = 'x' # mark all available pos for all pieces on board (may overlap)
+        #pass

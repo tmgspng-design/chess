@@ -1,3 +1,6 @@
+import pygame
+import sys
+
 class Piece: # base class for all chess pieces
     def __init__(self, name, symbol, prev_col_idx, prev_row_idx, chess_array):
         self.name = name      # qr qn qb q k kb kn kr - Black ; QR QN QB Q K KB KN KR - White
@@ -13,6 +16,12 @@ class Piece: # base class for all chess pieces
         self.attack_pos_list = [] # all available move positions wrt current position and obstacles
         self.move_list = [] # save initial attack_pos_list which is actually avail move list wrt curr pos
         self.move_attack_list = [] # the attack spaces for each avail pos the piece can move to
+
+    def set_active(self, active): # True if piece has not been taken; False if piece has been taken
+        self.active = active
+
+    def is_active(self): # True if piece has not been taken; False if piece has been taken
+        return self.active
 
     def gen_attack_space(self): # base method to create available move/attack positions list
         self.attack_pos_list_bound = []
@@ -87,6 +96,30 @@ class Rook(Piece):
             self.attack_pos_list_all.append([self.curr_col_idx, self.curr_row_idx + delta_row_idx])
         super().gen_attack_space()
 
+# 1. Initialize Pygame
+pygame.init()
+
+# 2. Setup Board Dimensions
+WIDTH, HEIGHT = 600, 600
+SQUARE_SIZE = WIDTH // 8
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Python Array to Chess Board")
+
+# 3. Define Colors (RGB)
+LIGHT_SQUARE = (240, 217, 181)  # Cream
+DARK_SQUARE = (181, 136, 99)    # Brown
+TEXT_COLOR = (0, 0, 0)          # Black for pieces
+
+# 4. Map Characters/Pieces to Unicode Chess Symbols
+PIECE_SYMBOLS = {
+    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
+    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
+    '.': ''                                                      # Empty Square
+}
+
+# 5. Your 2D Python Input Array (8x8)
+# Lowercase = Black, Uppercase = White, '.' = Empty
+### chess_array[row_idx][col_idx] ###
 chess_array = [
 #     qr   qn   qb   q    k   kb   kn   kr
     ['.', '.', '.', '.', '.', '.', '.', '.'],  #row 0 black pieces
@@ -100,6 +133,31 @@ chess_array = [
 #     QR   QN   QB   Q    K   KB   KN   KR
 ] # col 0                              col 7
 
+# 6. Initialize Font for Pieces (Make sure it supports Unicode)
+
+def draw_board(board_array):
+    font = pygame.font.SysFont("arialunicode", int(SQUARE_SIZE * 0.8))
+    for row in range(8):
+        for col in range(8):
+            # Determine background tile color (alternating checkerboard pattern)
+            color = LIGHT_SQUARE if (row + col) % 2 == 0 else DARK_SQUARE
+            
+            # Draw the background square
+            rect = pygame.Rect(col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+            pygame.draw.rect(screen, color, rect)
+            
+            # Get piece code from array and convert to Unicode
+            piece = board_array[row][col]
+            symbol = PIECE_SYMBOLS.get(piece, '')
+            
+            if symbol:
+                # Render text and center it inside the square
+                text_surface = font.render(symbol, True, TEXT_COLOR)
+                text_rect = text_surface.get_rect(center=rect.center)
+                screen.blit(text_surface, text_rect)
+
+# 7. Main Game Loop
+
 piece_obj_list = [] #name, symbol, col, row, chess_array
 
 piece_obj_list += [Bishop('qb', 'b', 3, 4, chess_array)] # black bishop
@@ -107,7 +165,35 @@ piece_obj_list += [Bishop('qb', 'b', 3, 4, chess_array)] # black bishop
 piece_obj_list += [Rook('KR', 'R', 7, 7, chess_array)] # white knight
 
 for obj in piece_obj_list:
-    chess_array[obj.curr_row_idx][obj.curr_col_idx] = obj.symbol # place pieces onto chess board
+    chess_array[obj.prev_row_idx][obj.prev_col_idx] = obj.symbol # place pieces onto chess board
+
+clock = pygame.time.Clock()
+
+running = True
+while running:
+    #for board_obj in piece_obj_list:
+
+        clock.tick(0.5)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                sys.exit()
+            
+        # Redraw the UI
+        #for obj in piece_obj_list: # Update/remove taken pieces from board/play
+            #if chess_array[obj.prev_row_idx][obj.prev_col_idx] != obj.symbol: # I've been taken
+                ##obj.active = False
+                #obj.set_active(False)
+
+        draw_board(chess_array)
+        pygame.display.flip() #Board is (re)drawn here
+
+        #if board_obj.is_active():
+            #board_obj.move_next_pos(chess_array)
+
+
 
 for obj in piece_obj_list:
     obj.gen_move_attack_list() # create availabe move pos for each piece wrt current pos
@@ -120,4 +206,5 @@ for coor, space in rook_obj.move_attack_list:
         if bishop_obj.prev_col_idx == pos[0] and bishop_obj.prev_row_idx == pos[1]:
             print (f"move to col={coor[0]} row = {coor[1]}")
     pass
+
 

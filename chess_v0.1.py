@@ -78,7 +78,6 @@ class Piece: # base class for all chess pieces
             self.move_attack_list.append([colrow, self.attack_pos_list])
 
 # override base method with piece specific move details in extended classes
-
 class Bishop(Piece):
     def gen_attack_space(self):
         self.attack_pos_list_all = []
@@ -96,28 +95,7 @@ class Rook(Piece):
             self.attack_pos_list_all.append([self.curr_col_idx, self.curr_row_idx + delta_row_idx])
         super().gen_attack_space()
 
-# 1. Initialize Pygame
-pygame.init()
-
-# 2. Setup Board Dimensions
-WIDTH, HEIGHT = 600, 600
-SQUARE_SIZE = WIDTH // 8
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Python Array to Chess Board")
-
-# 3. Define Colors (RGB)
-LIGHT_SQUARE = (240, 217, 181)  # Cream
-DARK_SQUARE = (181, 136, 99)    # Brown
-TEXT_COLOR = (0, 0, 0)          # Black for pieces
-
-# 4. Map Characters/Pieces to Unicode Chess Symbols
-PIECE_SYMBOLS = {
-    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
-    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
-    '.': ''                                                      # Empty Square
-}
-
-# 5. Your 2D Python Input Array (8x8)
+# Your 2D Python Input Array (8x8)
 # Lowercase = Black, Uppercase = White, '.' = Empty
 ### chess_array[row_idx][col_idx] ###
 chess_array = [
@@ -133,10 +111,29 @@ chess_array = [
 #     QR   QN   QB   Q    K   KB   KN   KR
 ] # col 0                              col 7
 
-# 6. Initialize Font for Pieces (Make sure it supports Unicode)
-
 def draw_board(board_array):
+    # Setup Board Dimensions
+    WIDTH, HEIGHT = 600, 600
+    SQUARE_SIZE = WIDTH // 8
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Python Array to Chess Board")
+
+    # Define Colors (RGB)
+    LIGHT_SQUARE = (240, 217, 181)  # Cream
+    DARK_SQUARE = (181, 136, 99)    # Brown
+    TEXT_COLOR = (0, 0, 0)          # Black for pieces
+
+    # Map Characters/Pieces to Unicode Chess Symbols
+    PIECE_SYMBOLS = {
+        'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟', # Black Pieces
+        'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙', # White Pieces
+        '.': ''                                                      # Empty Square
+    }
+
+    # Initialize Font for Pieces (Make sure it supports Unicode)
     font = pygame.font.SysFont("arialunicode", int(SQUARE_SIZE * 0.8))
+
+    # Iterates through the 2D array and renders the GUI
     for row in range(8):
         for col in range(8):
             # Determine background tile color (alternating checkerboard pattern)
@@ -157,6 +154,9 @@ def draw_board(board_array):
                 screen.blit(text_surface, text_rect)
 
 # 7. Main Game Loop
+
+# 1. Initialize Pygame
+pygame.init()
 
 piece_obj_list = [] #name, symbol, col, row, chess_array
 

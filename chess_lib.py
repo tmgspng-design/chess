@@ -68,6 +68,8 @@ class Piece: # base class for all chess pieces
                         break
 
     def gen_move_attack_list(self): # base method to create the attack spaces for each avail pos the piece can move to 
+        self.curr_col_idx = self.prev_col_idx  # Current COL position - 0 to 7 from left to right
+        self.curr_row_idx = self.prev_row_idx  # Current ROW position - 0 to 7 from top to bottom
         self.gen_attack_space()
         self.move_list = self.attack_pos_list # save initial attack_pos_list which is actually avail move list wrt curr pos
         for colrow in self.move_list: # check attack space for each move pos

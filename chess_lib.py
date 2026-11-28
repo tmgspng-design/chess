@@ -6,13 +6,8 @@ class Piece: # base class for all chess pieces
         self.symbol = symbol  # r n b q k p - Black ; R N B Q K P - White
         self.prev_col_idx = prev_col_idx  # Previous COL position - 0 to 7 from left to right
         self.prev_row_idx = prev_row_idx  # Previous ROW position - 0 to 7 from top to bottom
-        self.curr_col_idx = prev_col_idx  # Current COL position - 0 to 7 from left to right
-        self.curr_row_idx = prev_row_idx  # Current ROW position - 0 to 7 from top to bottom
         self.active = True # TRUE if piece in play ; FALSE if piece is taken
         self.chess_array = chess_array # pointer to chess board
-        self.attack_pos_list_all = []
-        self.attack_pos_list_bound = []
-        self.attack_pos_list = [] # all available move positions wrt current position and obstacles
         self.move_list = [] # save initial attack_pos_list which is actually avail move list wrt curr pos
         self.move_attack_list = [] # the attack spaces for each avail pos the piece can move to
 
@@ -22,79 +17,74 @@ class Piece: # base class for all chess pieces
     def is_active(self): # True if piece has not been taken; False if piece has been taken
         return self.active
 
-    def gen_attack_space(self): # base method to create available move/attack positions list
-        self.attack_pos_list_bound = []
-        self.attack_pos_list = [] # all available move positions wrt current position and obstacles
-        for col, row in self.attack_pos_list_all:
+    def gen_attack_space(self, attack_pos_list_all, curr_col_idx, curr_row_idx): # base method to create available move/attack positions list
+        attack_pos_list_bound = []
+        attack_pos_list = [] # all available move positions wrt current position and obstacles
+        for col, row in attack_pos_list_all:
             if 0 <= col <= 7 and 0 <= row <= 7:
-                self.attack_pos_list_bound.append([col, row])
-                self.attack_pos_list.append([col, row])
-        for col, row in self.attack_pos_list_bound: # go thru & remove pos from list if obstacles along its path
+                attack_pos_list_bound.append([col, row])
+                attack_pos_list.append([col, row])
+        for col, row in attack_pos_list_bound: # go thru & remove pos from list if obstacles along its path
             #print (f"col={col} row={row}")
-            if self.curr_col_idx < col:
+            if curr_col_idx < col:
                 sgnc = 1 # move RIGHT
-            elif self.curr_col_idx > col:
+            elif curr_col_idx > col:
                 sgnc = -1 # move LEFT
             else:
                 sgnc = 0 # no R/L motion
-            if self.curr_row_idx < row:
+            if curr_row_idx < row:
                 sgnr = 1 # move DOWN
-            elif self.curr_row_idx > row:
+            elif curr_row_idx > row:
                 sgnr = -1 # move UP
             else:
                 sgnr = 0 # no D/U motion
             #print (f"col={col} row={row} sgnc={sgnc} sgnr={sgnr}")
             if sgnc == 0: # only D/U motion
-                for x in range(self.curr_row_idx, row + sgnr, sgnr): # check along vertical path
-                    if x == self.curr_row_idx:
+                for x in range(curr_row_idx, row + sgnr, sgnr): # check along vertical path
+                    if x == curr_row_idx:
                         continue
-                    elif self.chess_array[x][self.curr_col_idx] in ['R', 'N', 'B', 'Q', 'K', 'P']:
-                        self.attack_pos_list.remove([col, row])
+                    elif self.chess_array[x][curr_col_idx] in ['R', 'N', 'B', 'Q', 'K', 'P']:
+                        attack_pos_list.remove([col, row])
                         break
             elif sgnr == 0: # only R/L motion
-                for x in range(self.curr_col_idx, col + sgnc, sgnc): # check along horizontal path
-                    if x == self.curr_col_idx:
+                for x in range(curr_col_idx, col + sgnc, sgnc): # check along horizontal path
+                    if x == curr_col_idx:
                         continue
-                    elif self.chess_array[self.curr_row_idx][x] in ['R', 'N', 'B', 'Q', 'K', 'P']:
-                        self.attack_pos_list.remove([col, row])
+                    elif self.chess_array[curr_row_idx][x] in ['R', 'N', 'B', 'Q', 'K', 'P']:
+                        attack_pos_list.remove([col, row])
                         break
             else: # both R/L and D/U motion
-                for x, y in zip(range(self.curr_col_idx, col + sgnc, sgnc), range(self.curr_row_idx, row + sgnr, sgnr)): # check along diag path
+                for x, y in zip(range(curr_col_idx, col + sgnc, sgnc), range(curr_row_idx, row + sgnr, sgnr)): # check along diag path
                     #print (f"x={x} y={y}")
-                    if (x, y) == (self.curr_col_idx , self.curr_row_idx ):
+                    if (x, y) == (curr_col_idx , curr_row_idx ):
                         continue
                     elif self.chess_array[y][x] in ['R', 'N', 'B', 'Q', 'K', 'P']:
-                        self.attack_pos_list.remove([col, row])
+                        attack_pos_list.remove([col, row])
                         break
+        return attack_pos_list
 
     def gen_move_attack_list(self): # base method to create the attack spaces for each avail pos the piece can move to 
-        self.curr_col_idx = self.prev_col_idx  # Current COL position - 0 to 7 from left to right
-        self.curr_row_idx = self.prev_row_idx  # Current ROW position - 0 to 7 from top to bottom
-        self.gen_attack_space()
-        self.move_list = self.attack_pos_list # save initial attack_pos_list which is actually avail move list wrt curr pos
+        self.move_list = self.gen_attack_space(self.prev_col_idx, self.prev_row_idx) # save initial attack_pos_list which is actually avail move list wrt curr pos
         for colrow in self.move_list: # check attack space for each move pos
-            self.curr_col_idx = colrow[0]
-            self.curr_row_idx = colrow[1]
-            self.gen_attack_space()
-            self.move_attack_list.append([colrow, self.attack_pos_list])
+            self.move_attack_list.append([colrow, self.gen_attack_space(colrow[0], colrow[1])])
 
 # override base method with piece specific move details in extended classes
 class Bishop(Piece):
-    def gen_attack_space(self):
-        self.attack_pos_list_all = []
+    def gen_attack_space(self, curr_col_idx, curr_row_idx):
+        attack_pos_list_all = []
         for delta_col_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
             for delta_row_idx in [-1 * delta_col_idx, delta_col_idx]:
-                self.attack_pos_list_all.append([self.curr_col_idx + delta_col_idx, self.curr_row_idx + delta_row_idx])
-        super().gen_attack_space()
+                attack_pos_list_all.append([curr_col_idx + delta_col_idx, curr_row_idx + delta_row_idx])
+        return super().gen_attack_space(attack_pos_list_all, curr_col_idx, curr_row_idx)
 
 class Rook(Piece):
-    def gen_attack_space(self):
-        self.attack_pos_list_all = []
+    def gen_attack_space(self, curr_col_idx, curr_row_idx):
+        attack_pos_list_all = []
         for delta_col_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
-            self.attack_pos_list_all.append([self.curr_col_idx + delta_col_idx, self.curr_row_idx])
+            attack_pos_list_all.append([curr_col_idx + delta_col_idx, curr_row_idx])
         for delta_row_idx in [-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7]:
-            self.attack_pos_list_all.append([self.curr_col_idx, self.curr_row_idx + delta_row_idx])
-        super().gen_attack_space()
+            attack_pos_list_all.append([curr_col_idx, curr_row_idx + delta_row_idx])
+        return super().gen_attack_space(attack_pos_list_all, curr_col_idx, curr_row_idx)
 
 # function to translate python array to graphical chess board
 def draw_board(board_array):

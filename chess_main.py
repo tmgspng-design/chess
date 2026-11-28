@@ -38,7 +38,6 @@ clock = pygame.time.Clock()
 
 running = True
 while running:
-    #for board_obj in piece_obj_list:
 
     clock.tick(0.5)
 
@@ -55,25 +54,23 @@ while running:
 
     chess_array[rook_obj.prev_row_idx][rook_obj.prev_col_idx] = '.' # move pieces on chess board
 
+    target_move_list = []
     for coor, space in rook_obj.move_attack_list:
         for pos in space:
             if bishop_obj.prev_col_idx == pos[0] and bishop_obj.prev_row_idx == pos[1]:
-                rook_obj.prev_col_idx = coor[0]
-                rook_obj.prev_row_idx = coor[1]
+                target_move_list.append(coor)
+    rook_obj.prev_col_idx, rook_obj.prev_row_idx = random.choice(target_move_list)
 
     chess_array[rook_obj.prev_row_idx][rook_obj.prev_col_idx] = rook_obj.symbol # move pieces on chess board
             
     chess_lib.draw_board(chess_array)
     pygame.display.flip() #Board is (re)drawn here
 
-    chess_array[bishop_obj.prev_row_idx][bishop_obj.prev_col_idx] = '.' # move pieces on chess board
-
     bishop_obj.gen_move_attack_list() # create availabe move pos for each piece wrt current pos
 
-    randcoor = random.choice(bishop_obj.move_list)
+    chess_array[bishop_obj.prev_row_idx][bishop_obj.prev_col_idx] = '.' # move pieces on chess board
 
-    bishop_obj.prev_col_idx = randcoor[0]
-    bishop_obj.prev_row_idx = randcoor[1]
+    bishop_obj.prev_col_idx, bishop_obj.prev_row_idx = random.choice(bishop_obj.move_list)
 
     chess_array[bishop_obj.prev_row_idx][bishop_obj.prev_col_idx] = bishop_obj.symbol # move pieces on chess board
             
